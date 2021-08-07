@@ -39,7 +39,8 @@ app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 class ArticleForm(Form):
     title=StringField("Makale Başlığı:",validators=[validators.length(min=5,max=40)])
     content=TextAreaField("Makale İçeriği:",validators=[validators.length(min=20,message="Daha Uzun Bir İçerik Girmelisiniz")])
-
+class ToDoForm(Form):
+    title=StringField("ToDo İsmi:",validators=[validators.DataRequired(message="Bu Alanı Doldurmalısınız")])
 
 mysql=MySQL(app)
 
@@ -54,18 +55,7 @@ def index():
 def about():
     return render_template("about.html")
 
-#dashboard
-@app.route("/dashboard")
-@login_required
-def dashboard():
-    cursor= mysql.connection.cursor()
-    sorgu="Select * From articles where author = %s"
-    resault = cursor.execute(sorgu,(session["username"],))
-    if resault>0:
-        articles = cursor.fetchall()
-        return render_template("dashboard.html",articles=articles)
-    else: 
-        return render_template("dashboard.html")
+
 
 @app.route("/register",methods = ["GET","POST"])
 def register():
@@ -144,7 +134,7 @@ def logout():
     return redirect(url_for("index"))
 
 
-#articles
+#detail
 @app.route("/article/<string:id>")
 def detail(id):
    return "Article Id: "+id
@@ -199,8 +189,29 @@ def delete(id):
         flash("Böyle bir makale yok veya bu işleme yetkiniz yok","danger")
         return redirect(url_for("index"))
 
-
-
+#Makale Sayfası 
+@app.route("/articles")
+def articles():
+    cursor= mysql.connection.cursor()
+    sorgu="Select * From articles"
+    result =cursor.execute(sorgu)
+    if result>0:
+        articles = cursor.fetchall()
+        return render_template("articles.html",articles=articles)
+    else:
+         return render_template("articles.html")
+#dashboard
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    cursor= mysql.connection.cursor()
+    sorgu="Select * From articles where author = %s"
+    resault = cursor.execute(sorgu,(session["username"],))
+    if resault>0:
+        articles = cursor.fetchall()
+        return render_template("dashboard.html",articles=articles)
+    else: 
+        return render_template("dashboard.html")
 #Makale Ekle
 @app.route("/addarticle",methods=["GET","POST"])
 def addarticle(): 
@@ -216,17 +227,7 @@ def addarticle():
         flash("Makale Başarıyla Eklendi","success")
         return redirect(url_for("dashboard"))
     return render_template("addarticle.html",form=form)
-#Makale Sayfası 
-@app.route("/articles")
-def articles():
-    cursor= mysql.connection.cursor()
-    sorgu="Select * From articles"
-    result =cursor.execute(sorgu)
-    if result>0:
-        articles = cursor.fetchall()
-        return render_template("articles.html",articles=articles)
-    else:
-         return render_template("articles.html")
+
 
 #Arama URL
 @app.route("/search",methods = ["GET","POST"])
@@ -250,6 +251,59 @@ def search():
 @login_required
 def Profil():
     return render_template ("profil.html")
+
+#ToDo Sayfası
+@app.route("/todo",methods=["GET","POST"])
+@login_required
+def todo(): 
+    form=ToDoForm(request.form)
+    cursor = mysql.connection.cursor()
+    sorgu2="Select * from todos where username=%s"
+    cursor.execute(sorgu2,(session["username"],))
+    todos=cursor.fetchall()    
+    if request.method=="POST" :
+        title=form.title.data
+        complated="False"
+        cursor = mysql.connection.cursor()
+        sorgu="Insert Into todos(username,title,complated) VALUES(%s,%s,%s)"
+        cursor.execute(sorgu,(session["username"],title,complated,))
+        mysql.connection.commit()
+        cursor.close()
+        flash("ToDo Başarıyla Eklendi","success")
+        return redirect(url_for("todo"))
+    return render_template("todo.html",form=form,todos=todos)
+
+#ToDo Güncelleme
+@app.route("/deletetodo/<string:id>")
+@login_required
+def deletetodo(id):
+    cursor = mysql.connection.cursor()
+    sorgu = "Select * from todos where username = %s and id = %s"
+    result = cursor.execute(sorgu,(session["username"],id))
+    if result > 0:
+        sorgu2 = "Delete from todos where id = %s"
+        cursor.execute(sorgu2,(id,))
+        mysql.connection.commit()
+        return redirect(url_for("todo"))
+    else:
+        flash("Böyle bir ToDo yok veya bu işleme yetkiniz yok","danger")
+        return redirect(url_for("todo"))
+
+@app.route("/complatetodo/<string:id>")
+@login_required
+def complate(id):
+    cursor = mysql.connection.cursor()
+    sorgu = "Select * from todos where username = %s and id = %s"
+    result = cursor.execute(sorgu,(session["username"],id))
+    if result > 0:
+        sorgu2 = "Update  todos set complated= not complated where id =%s"
+        cursor.execute(sorgu2,(id,))
+        mysql.connection.commit()
+        return redirect(url_for("todo"))
+    else:
+        flash("Böyle bir ToDo yok veya bu işleme yetkiniz yok","danger")
+        return redirect(url_for("todo"))
+
 
 if __name__=="__main__":
    app.run(debug=True)

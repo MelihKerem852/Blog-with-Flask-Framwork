@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block body %}
+{% from "includes/formhelpers.html" import render_field %}
+
+    <h3>ToDo'lar</h3>
+    <hr>
+ 
+    <form method="POST">
+    {{ render_field(form.title,class="form-control") }}
+    <button type="submit" class="btn btn-info">ToDo Ekle!</button>
+<br><br>
+    <table class="table table-hover">
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col"> #</th>
+      <th scope="col">ToDo Başlık</th>
+      <th scope="col">ToDo Durum</th>
+      <th scope="col">Durum Güncelle</th>
+      <th scope="col">ToDo İptal</th>
+
+    </tr>
+  </thead>
+  <tbody>
+    {% for todo in todos %}
+        <tr>
+      <th scope="row">{{todo.ip}}</th>
+      <td>{{todo.title}}</td>
+      {% if todo.complated==False %}
+      <td>Tamamlanmadı</td>
+      {% else %}
+      <td>Tamamlandı</td>
+
+      {% endif %}
+      <td><a href="/complatetodo/{{todo.id}}"class="btn btn-danger">Durum Değiştir</a></td>
+      <td><a href="/deletetodo/{{todo.id}}"class="btn btn-danger">Sil</a></td>
+
+        </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</form>
+    <hr>
+
+
+    
+{% endblock body %}

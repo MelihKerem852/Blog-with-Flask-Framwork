@@ -6,5 +6,10 @@
     <br>
     <p>Bu blogda geliştiriciler olarak yazdığınız kodları diğer geliştiricilerle paylaşıp insanlara yardımcı olabilir, aldığınız hataları sormak için başlıklar açabilir, diğer geliştiricilerin sorunlarını çözebilirsiniz.</p>
     </div>
-
+    {% if session["logged_in"] %}
+    <hr>
+        <button type="button" class="btn btn-dark"><a href="/todo" style="color:white; ">ToDo'larımı Görüntüle</a></button>
+        <hr>
+    {% else %}
+    {% endif %}    
 {% endblock %}
