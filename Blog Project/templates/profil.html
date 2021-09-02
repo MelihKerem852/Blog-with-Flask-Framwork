@@ -1,8 +1,16 @@
 {% extends "layout.html" %}
 {% block body %}
+<div>   <img class="raunded-circle account-img" src="https://mail.crestedcranesolutions.com/wp-content/uploads/2013/07/facebook-profile-picture-no-pic-avatar.jpg" style="border-radius:205px; width:250px; position:releative;margin-left:38%">
+</div>
+
     <div class="container p-4" style="background-color: rgb(228, 228, 228); padding:10px;">
         <h2>Profil Sayfası</h2>
     </div>
+    <br><br>
+    <h2> Adı: {{user.name}}</h2>
+    <h2> Kullanıcı Adı: {{user.username}}</h2>
+    
+
 {% endblock body %}
     
 

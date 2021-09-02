@@ -1,9 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
- 
-    {% if article %}
-   
-   
+{% if article %} 
                                
     <h4>{{article.title}}</h4>
     <hr>
@@ -13,11 +10,14 @@
     <hr>
     {{article.content|safe}}
     <br><br><br>
-    <button type="button" class="btn btn-lg btn-primary" disabled style="margin-left:85%;"><a href="/comments/{{article.id}}"style=" color:white; text-decoration:none;">Yorum Ekle</a></button>
 
+    <form method="POST">
+    {{ render_field(form.title,class="form-control") }}
+    {{ render_field(form.content,class="form-control") }}
+    <button type="submit" class="btn btn-danger">Makale Ekle!</button>
+    </form>
+    
     {% else %}
     <div class= "alert alert-warning">Böyle Bir Makale Bulunmamaktadır</div>
     {% endif %}
-
-
 {% endblock body %}

@@ -37,8 +37,11 @@ app.config["MYSQL_DB"] = "bloglisa"
 app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 #Makale Form
 class ArticleForm(Form):
-    title=StringField("Makale Başlığı:",validators=[validators.length(min=5,max=40)])
-    content=TextAreaField("Makale İçeriği:",validators=[validators.length(min=20,message="Daha Uzun Bir İçerik Girmelisiniz")])
+    title=StringField("Makale Başlığı:",validators=[validators.DataRequired(message="Bu Alan Boş Bırakılamaz"),validators.length(min=5,max=40)])
+    content=TextAreaField("Makale İçeriği:",validators=[validators.DataRequired(message="Bu Alan Boş Bırakılamaz"),validators.length(min=20,message="Daha Uzun Bir İçerik Girmelisiniz")])
+class CommentForm(Form):
+    title=StringField("Yorum Başlığı:",validators=[validators.DataRequired(message="Bu Alan Boş Bırakılamaz"),validators.length(min=5,max=40)])
+    content=TextAreaField("Yorum İçeriği:",validators=[validators.DataRequired(message="Bu Alan Boş Bırakılamaz"),validators.length(min=20,message="Daha Uzun Bir İçerik Girmelisiniz")])
 class ToDoForm(Form):
     title=StringField("ToDo İsmi:",validators=[validators.DataRequired(message="Bu Alanı Doldurmalısınız")])
 
@@ -79,7 +82,6 @@ def register():
         return redirect(url_for("login"))
     else:
         return render_template("register.html",form = form)
-
 #Detay Sayfası
 @app.route("/article/<string:id>")
 def article(id):
@@ -250,7 +252,14 @@ def search():
 @app.route("/profil/")
 @login_required
 def Profil():
-    return render_template ("profil.html")
+    cursor=mysql.connection.cursor()
+    sorgu="Select * from users where username=%s"
+    result=cursor.execute(sorgu,(session["username"],))
+    if result>0:
+        user=cursor.fetchone() 
+        return render_template ("profil.html",user=user)
+    else:
+        return render_template ("profil.html")
 
 #ToDo Sayfası
 @app.route("/todo",methods=["GET","POST"])
@@ -304,6 +313,29 @@ def complate(id):
         flash("Böyle bir ToDo yok veya bu işleme yetkiniz yok","danger")
         return redirect(url_for("todo"))
 
+@app.route("/comments/<string:id>")
+@login_required
+def comments(id):
+    form=CommentForm(request.form)
+    cursor= mysql.connection.cursor()    
+    sorgu2="Select * from articles where id =%s"
+    result=cursor.execute(sorgu2,(id,))
+    article=cursor.fetchall()
+    if result>0:
+        if request.method=="POST":
+            title=form.title.data
+            content=form.content.data
+
+            cursor= mysql.connection.cursor()
+            sorgu="Insert Into comments(article_id,username,title,content) Values(%s,%s,%s,%s)"
+            cursor.execute(sorgu,({{article.id}},session["username"],title,content))
+            mysql.connection.commit()
+            cursor.close()
+            flash("Yorum Başarıyla Eklendi","success")
+            return redirect(url_for("article"))
+        return render_template("comments.html",form = form)
+    else:
+        return render_template("comments.html")
 
 if __name__=="__main__":
    app.run(debug=True)
